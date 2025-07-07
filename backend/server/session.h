@@ -11,6 +11,7 @@ class CollaborationService;
 class Session : public std::enable_shared_from_this<Session> {
 public:
     Session(boost::asio::ip::tcp::socket socket, CollaborationService* collabService);
+    ~Session();
     void start();
     void do_write(const std::string& msg); // 公开
 
@@ -23,4 +24,5 @@ private:
     boost::asio::ip::tcp::socket socket_;
     std::array<char, 1024> buffer_;
     CollaborationService* collabService_;
+    std::string read_buffer_;
 }; 

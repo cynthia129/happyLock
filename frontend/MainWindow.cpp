@@ -24,6 +24,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QPushButton>
+#include <QComboBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -88,6 +89,70 @@ MainWindow::MainWindow(QWidget *parent)
             userListWidget->clear();
             for (const QJsonValue& v : obj["users"].toArray()) {
                 userListWidget->addItem(v.toString());
+            }
+        } else if (obj["type"] == "doc_list") {
+            QDialog dialog(this);
+            dialog.setWindowTitle("切换文档");
+            dialog.setFixedSize(350, 180);
+            dialog.setModal(true);
+            QVBoxLayout* layout = new QVBoxLayout(&dialog);
+            QLabel* docLabel = new QLabel("选择或输入文档名:", &dialog);
+            QComboBox* docCombo = new QComboBox(&dialog);
+            docCombo->setEditable(true);
+            QJsonArray docs = obj["docs"].toArray();
+            for (const QJsonValue& v : docs) {
+                QJsonObject d = v.toObject();
+                docCombo->addItem(d["title"].toString(), d["id"].toInt());
+            }
+            docCombo->setEditText(docTitle->text());
+            // 重命名按钮
+            QPushButton* renameBtn = new QPushButton("重命名当前文档", &dialog);
+            // 按钮
+            QHBoxLayout* buttonLayout = new QHBoxLayout();
+            QPushButton* okButton = new QPushButton("切换", &dialog);
+            QPushButton* cancelButton = new QPushButton("取消", &dialog);
+            buttonLayout->addWidget(okButton);
+            buttonLayout->addWidget(cancelButton);
+            // 添加到主布局
+            layout->addWidget(docLabel);
+            layout->addWidget(docCombo);
+            layout->addWidget(renameBtn);
+            layout->addStretch();
+            layout->addLayout(buttonLayout);
+            // 连接信号
+            connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+            connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+            connect(renameBtn, &QPushButton::clicked, this, [this, &dialog, docCombo]() {
+                QString newTitle = QInputDialog::getText(&dialog, "重命名文档", "新文档名:");
+                if (!newTitle.isEmpty()) {
+                    int docId = docCombo->currentData().toInt();
+                    QJsonObject req;
+                    req["type"] = "rename_doc";
+                    req["docId"] = docId;
+                    req["newTitle"] = newTitle;
+                    netClient->sendJson(req);
+                }
+            });
+            docCombo->setFocus();
+            if (dialog.exec() == QDialog::Accepted) {
+                QString docName = docCombo->currentText().trimmed();
+                if (docName.isEmpty()) {
+                    statusBar()->showMessage("文档名不能为空", 2000);
+                    return;
+                }
+                QJsonObject obj;
+                obj["type"] = "switch_doc";
+                obj["docTitle"] = docName;
+                obj["user"] = username;
+                netClient->sendJson(obj);
+                docTitle->setText(docName);
+                editor->clear();
+            }
+        } else if (obj["type"] == "rename_result") {
+            if (obj["ok"].toBool()) {
+                statusBar()->showMessage("重命名成功", 2000);
+            } else {
+                statusBar()->showMessage("重命名失败", 2000);
             }
         }
     });
@@ -276,58 +341,15 @@ void MainWindow::onConnectServer() {
 }
 
 void MainWindow::onSwitchDocument() {
-    // 创建自定义切换文档对话框
-    QDialog dialog(this);
-    dialog.setWindowTitle("切换文档");
-    dialog.setFixedSize(250, 120);
-    dialog.setModal(true);
-    
-    QVBoxLayout* layout = new QVBoxLayout(&dialog);
-    
-    // 文档ID输入
-    QLabel* docLabel = new QLabel("文档ID:", &dialog);
-    QSpinBox* docEdit = new QSpinBox(&dialog);
-    docEdit->setRange(1, 10000);
-    docEdit->setValue(currentDocId);
-    
-    // 按钮
-    QHBoxLayout* buttonLayout = new QHBoxLayout();
-    QPushButton* okButton = new QPushButton("切换", &dialog);
-    QPushButton* cancelButton = new QPushButton("取消", &dialog);
-    buttonLayout->addWidget(okButton);
-    buttonLayout->addWidget(cancelButton);
-    
-    // 添加到主布局
-    layout->addWidget(docLabel);
-    layout->addWidget(docEdit);
-    layout->addStretch();
-    layout->addLayout(buttonLayout);
-    
-    // 连接信号
-    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
-    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-    
-    // 设置默认焦点
-    docEdit->setFocus();
-    
-    // 显示对话框
-    if (dialog.exec() == QDialog::Accepted) {
-        int docId = docEdit->value();
-        currentDocId = docId;
-        
-        if (netClient->isConnected()) {
-            QJsonObject obj;
-            obj["type"] = "switch_doc";
-            obj["docId"] = currentDocId;
-            obj["user"] = username;
-            netClient->sendJson(obj);
-        } else {
-            statusBar()->showMessage("未连接到服务器", 2000);
-        }
-        
-        editor->clear();
-        docTitle->setText(QString("文档ID: %1").arg(currentDocId));
+    // 请求文档列表
+    if (!netClient->isConnected()) {
+        statusBar()->showMessage("未连接到服务器", 2000);
+        return;
     }
+    QJsonObject req;
+    req["type"] = "list_docs";
+    netClient->sendJson(req);
+    // 弹窗将在收到jsonReceived后处理
 }
 
 void MainWindow::onShowVersionManager() {

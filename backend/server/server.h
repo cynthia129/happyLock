@@ -3,6 +3,7 @@
 #include <memory>
 #include "session.h"
 #include "../service/CollaborationService.h"
+#include <mutex>
 
 class Server {
 public:
@@ -12,4 +13,7 @@ private:
     void do_accept();
     boost::asio::ip::tcp::acceptor acceptor_;
     CollaborationService collabService_;
-}; 
+};
+
+extern std::mutex g_conn_mutex;
+extern int g_conn_count; 

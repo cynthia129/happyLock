@@ -21,3 +21,9 @@ install(TARGETS serverlib
 
 install(FILES server.h session.h
     DESTINATION include/server)
+
+add_executable(happyLockServer main.cpp)
+target_link_libraries(happyLockServer PRIVATE serverlib Boost::system model service)
+
+install(TARGETS happyLockServer
+    RUNTIME DESTINATION bin)

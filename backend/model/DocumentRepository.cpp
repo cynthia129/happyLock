@@ -71,8 +71,10 @@ bool DocumentRepository::getDocument(int id, Document& doc) {
     bool found = false;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         doc.id = sqlite3_column_int(stmt, 0);
-        doc.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        doc.content = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        const char* title_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        doc.title = title_ptr ? title_ptr : "";
+        const char* content_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        doc.content = content_ptr ? content_ptr : "";
         doc.version = sqlite3_column_int(stmt, 3);
         found = true;
     }
@@ -88,8 +90,10 @@ std::vector<Document> DocumentRepository::getAllDocuments() {
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         Document doc;
         doc.id = sqlite3_column_int(stmt, 0);
-        doc.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        doc.content = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        const char* title_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        doc.title = title_ptr ? title_ptr : "";
+        const char* content_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        doc.content = content_ptr ? content_ptr : "";
         doc.version = sqlite3_column_int(stmt, 3);
         docs.push_back(doc);
     }
@@ -120,8 +124,10 @@ std::vector<Version> DocumentRepository::getVersions(int docId) {
         Version ver;
         ver.id = sqlite3_column_int(stmt, 0);
         ver.docId = sqlite3_column_int(stmt, 1);
-        ver.content = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        ver.author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        const char* content_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        ver.content = content_ptr ? content_ptr : "";
+        const char* author_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        ver.author = author_ptr ? author_ptr : "";
         ver.timestamp = static_cast<std::time_t>(sqlite3_column_int64(stmt, 4));
         vers.push_back(ver);
     }
@@ -139,7 +145,8 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     std::string content;
     bool found = false;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
-        content = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        const char* content_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        content = content_ptr ? content_ptr : "";
         found = true;
     }
     sqlite3_finalize(stmt);
@@ -148,6 +155,59 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     const char* usql = "UPDATE documents SET content=? WHERE id=?;";
     if (sqlite3_prepare_v2(db_, usql, -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, content.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, docId);
+    bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return ok;
+}
+
+int DocumentRepository::getDocIdByTitle(const std::string& title) {
+    const char* sql = "SELECT id FROM documents WHERE title=?;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return -1;
+    sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_TRANSIENT);
+    int docId = -1;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        docId = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    return docId;
+}
+
+int DocumentRepository::createDocumentWithTitle(const std::string& title) {
+    const char* sql = "INSERT INTO documents (title, content, version) VALUES (?, '', 1);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return -1;
+    sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+    int docId = static_cast<int>(sqlite3_last_insert_rowid(db_));
+    sqlite3_finalize(stmt);
+    return docId;
+}
+
+std::vector<std::pair<int, std::string>> DocumentRepository::getAllDocIdTitle() {
+    std::vector<std::pair<int, std::string>> docs;
+    const char* sql = "SELECT id, title FROM documents;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return docs;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        const char* title_ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string title = title_ptr ? title_ptr : "";
+        docs.emplace_back(id, title);
+    }
+    sqlite3_finalize(stmt);
+    return docs;
+}
+
+bool DocumentRepository::renameDocument(int docId, const std::string& newTitle) {
+    const char* sql = "UPDATE documents SET title=? WHERE id=?;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    sqlite3_bind_text(stmt, 1, newTitle.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 2, docId);
     bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
     sqlite3_finalize(stmt);
