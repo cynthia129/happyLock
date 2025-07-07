@@ -25,3 +25,9 @@ add_executable(frontend
 )
 
 target_link_libraries(frontend PRIVATE Qt6::Widgets Qt6::Gui Qt6::Core Qt6::Network)
+
+install(TARGETS frontend
+    RUNTIME DESTINATION bin)
+
+install(FILES MainWindow.h NetworkClient.h
+    DESTINATION include/frontend)

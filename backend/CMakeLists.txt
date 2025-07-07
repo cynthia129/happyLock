@@ -28,4 +28,12 @@ target_link_libraries(sessionlib
         service
         serverlib
         "C:/sqlite3/sqlite3.lib"
-) 
+)
+
+install(TARGETS sessionlib
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin)
+
+install(FILES session.h
+    DESTINATION include) 

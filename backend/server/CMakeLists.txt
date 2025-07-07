@@ -13,3 +13,11 @@ target_link_libraries(serverlib
         service
         "C:/sqlite3/sqlite3.lib"
 )
+
+install(TARGETS serverlib
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin)
+
+install(FILES server.h session.h
+    DESTINATION include/server)
