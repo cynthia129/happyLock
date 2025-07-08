@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QComboBox>
 
+// 构造函数，初始化主窗口和UI组件，连接信号与槽
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     resize(900, 600);
 
     netClient = new NetworkClient(this);
+    // 连接网络相关信号槽
     connect(netClient, &NetworkClient::connected, this, [this]() {
         statusBar()->showMessage("已连接服务器", 2000);
         statusLabel->setText(QString("用户: %1 | 版本: v1.1 | 已连接").arg(username));
@@ -53,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
         statusLabel->setText(QString("用户: %1 | 版本: v1.1 | 未连接").arg(username));
     });
     connect(netClient, &NetworkClient::jsonReceived, this, [this](const QJsonObject& obj) {
+        // 处理后端返回的各种消息类型
         if (obj["type"] == "edit" && obj["docId"].toInt() == currentDocId) {
             ignoreTextChanged = true;
             editor->setPlainText(obj["content"].toString());
@@ -91,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
                 userListWidget->addItem(v.toString());
             }
         } else if (obj["type"] == "doc_list") {
+            // 弹窗选择或输入文档名
             QDialog dialog(this);
             dialog.setWindowTitle("切换文档");
             dialog.setFixedSize(350, 180);
@@ -105,21 +109,17 @@ MainWindow::MainWindow(QWidget *parent)
                 docCombo->addItem(d["title"].toString(), d["id"].toInt());
             }
             docCombo->setEditText(docTitle->text());
-            // 重命名按钮
             QPushButton* renameBtn = new QPushButton("重命名当前文档", &dialog);
-            // 按钮
             QHBoxLayout* buttonLayout = new QHBoxLayout();
             QPushButton* okButton = new QPushButton("切换", &dialog);
             QPushButton* cancelButton = new QPushButton("取消", &dialog);
             buttonLayout->addWidget(okButton);
             buttonLayout->addWidget(cancelButton);
-            // 添加到主布局
             layout->addWidget(docLabel);
             layout->addWidget(docCombo);
             layout->addWidget(renameBtn);
             layout->addStretch();
             layout->addLayout(buttonLayout);
-            // 连接信号
             connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
             connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
             connect(renameBtn, &QPushButton::clicked, this, [this, &dialog, docCombo]() {
@@ -163,7 +163,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(editor, &QTextEdit::textChanged, this, [this]() {
         if (ignoreTextChanged) return;
         if (!netClient->isConnected()) {
-            // 如果未连接，不发送数据
+            // 未连接时不发送数据
             return;
         }
         QJsonObject obj;
@@ -178,8 +178,10 @@ MainWindow::MainWindow(QWidget *parent)
     versionListWidget = nullptr;
 }
 
+// 析构函数
 MainWindow::~MainWindow() {}
 
+// 初始化菜单栏
 void MainWindow::setupMenu() {
     QMenu* fileMenu = menuBar()->addMenu("文件");
     newAction = fileMenu->addAction("新建");
@@ -203,6 +205,7 @@ void MainWindow::setupMenu() {
     connect(switchDocAction, &QAction::triggered, this, &MainWindow::onSwitchDocument);
 }
 
+// 初始化主界面布局
 void MainWindow::setupLayout() {
     QWidget* central = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(central);
@@ -238,16 +241,18 @@ void MainWindow::setupLayout() {
     setCentralWidget(central);
 }
 
+// 初始化状态栏
 void MainWindow::setupStatusBar() {
     statusLabel = new QLabel("用户: Lily | 版本: v1.1 | 未连接", this);
     statusBar()->addWidget(statusLabel);
 }
 
-// --- 槽函数实现 ---
+// 槽函数：新建文档
 void MainWindow::onNew() {
     editor->clear();
     docTitle->setText("新建文档");
 }
+// 槽函数：打开文档
 void MainWindow::onOpen() {
     QString fileName = QFileDialog::getOpenFileName(this, "打开文档", "", "文本文档 (*.txt);;所有文件 (*)");
     if (!fileName.isEmpty()) {
@@ -258,6 +263,7 @@ void MainWindow::onOpen() {
         }
     }
 }
+// 槽函数：保存文档
 void MainWindow::onSave() {
     QString fileName = QFileDialog::getSaveFileName(this, "保存文档", "", "文本文档 (*.txt);;所有文件 (*)");
     if (!fileName.isEmpty()) {
@@ -268,47 +274,39 @@ void MainWindow::onSave() {
         }
     }
 }
+// 槽函数：版本管理弹窗
 void MainWindow::onVersion() {
     QMessageBox::information(this, "版本管理", "这里可以实现版本对比、回滚等功能。");
 }
+// 槽函数：退出程序
 void MainWindow::onExit() {
     close();
 }
+// 槽函数：点击版本列表项
 void MainWindow::onVersionSelected(QListWidgetItem* item) {
     QMessageBox::information(this, "版本详情", item->text());
 }
-
+// 槽函数：连接服务器弹窗
 void MainWindow::onConnectServer() {
-    // 创建自定义连接对话框，避免 QInputDialog 的尺寸问题
+    // 创建自定义连接对话框，输入服务器地址、端口和用户名
     QDialog dialog(this);
     dialog.setWindowTitle("连接服务器");
     dialog.setFixedSize(300, 200);
     dialog.setModal(true);
-    
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
-    
-    // 服务器地址输入
     QLabel* hostLabel = new QLabel("服务器地址:", &dialog);
     QLineEdit* hostEdit = new QLineEdit("127.0.0.1", &dialog);
-    
-    // 端口输入
     QLabel* portLabel = new QLabel("端口:", &dialog);
     QSpinBox* portEdit = new QSpinBox(&dialog);
     portEdit->setRange(1, 65535);
     portEdit->setValue(12345);
-    
-    // 用户名输入
     QLabel* userLabel = new QLabel("用户名:", &dialog);
     QLineEdit* userEdit = new QLineEdit(username, &dialog);
-    
-    // 按钮
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     QPushButton* okButton = new QPushButton("连接", &dialog);
     QPushButton* cancelButton = new QPushButton("取消", &dialog);
     buttonLayout->addWidget(okButton);
     buttonLayout->addWidget(cancelButton);
-    
-    // 添加到主布局
     layout->addWidget(hostLabel);
     layout->addWidget(hostEdit);
     layout->addWidget(portLabel);
@@ -317,20 +315,13 @@ void MainWindow::onConnectServer() {
     layout->addWidget(userEdit);
     layout->addStretch();
     layout->addLayout(buttonLayout);
-    
-    // 连接信号
     connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
     connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-    
-    // 设置默认焦点
     hostEdit->setFocus();
-    
-    // 显示对话框
     if (dialog.exec() == QDialog::Accepted) {
         QString host = hostEdit->text().trimmed();
         int port = portEdit->value();
         QString newUsername = userEdit->text().trimmed();
-        
         if (!host.isEmpty() && !newUsername.isEmpty()) {
             username = newUsername;
             netClient->connectToServer(host, port);
@@ -339,9 +330,9 @@ void MainWindow::onConnectServer() {
         }
     }
 }
-
+// 槽函数：切换文档弹窗
 void MainWindow::onSwitchDocument() {
-    // 请求文档列表
+    // 请求文档列表，弹窗将在收到jsonReceived后处理
     if (!netClient->isConnected()) {
         statusBar()->showMessage("未连接到服务器", 2000);
         return;
@@ -349,27 +340,23 @@ void MainWindow::onSwitchDocument() {
     QJsonObject req;
     req["type"] = "list_docs";
     netClient->sendJson(req);
-    // 弹窗将在收到jsonReceived后处理
 }
-
+// 槽函数：弹出历史版本管理
 void MainWindow::onShowVersionManager() {
-    // 请求历史版本
     if (netClient->isConnected()) {
         QJsonObject req;
         req["type"] = "get_versions";
         req["docId"] = currentDocId;
         netClient->sendJson(req);
-        // 弹窗将在收到jsonReceived后处理
     } else {
         statusBar()->showMessage("未连接到服务器", 2000);
     }
 }
-
+// 槽函数：点击历史版本项，发起回滚请求
 void MainWindow::onVersionItemClicked(QListWidgetItem* item) {
     bool ok = false;
     int versionId = item->data(Qt::UserRole).toInt(&ok);
     if (!ok) return;
-    
     if (netClient->isConnected()) {
         QJsonObject req;
         req["type"] = "rollback";
@@ -380,14 +367,12 @@ void MainWindow::onVersionItemClicked(QListWidgetItem* item) {
         statusBar()->showMessage("未连接到服务器", 2000);
     }
 }
-
+// 槽函数：双击历史版本项，弹出内容对比
 void MainWindow::onVersionItemDoubleClicked(QListWidgetItem* item) {
     bool ok = false;
     int versionId = item->data(Qt::UserRole).toInt(&ok);
     if (!ok) return;
-    
     if (netClient->isConnected()) {
-        // 请求该版本内容
         QJsonObject req;
         req["type"] = "get_versions";
         req["docId"] = currentDocId;
@@ -396,13 +381,9 @@ void MainWindow::onVersionItemDoubleClicked(QListWidgetItem* item) {
         statusBar()->showMessage("未连接到服务器", 2000);
         return;
     }
-    
-    // 这里简化处理，直接用当前内容和历史内容对比
-    // 实际可扩展为后端返回指定版本内容
-    QString currentText = editor->toPlainText();
-    // 假设历史内容通过 item->toolTip() 暂存（可扩展为后端返回）
-    QString oldText = item->toolTip();
     // 简单diff高亮
+    QString currentText = editor->toPlainText();
+    QString oldText = item->toolTip();
     QDialog dlg(this);
     dlg.setWindowTitle("内容对比");
     QVBoxLayout* layout = new QVBoxLayout(&dlg);
@@ -426,7 +407,7 @@ void MainWindow::onVersionItemDoubleClicked(QListWidgetItem* item) {
     dlg.setLayout(layout);
     dlg.exec();
 }
-
+// 槽函数：处理回滚结果
 void MainWindow::handleRollbackResult(const QJsonObject& obj) {
     if (obj["ok"].toBool()) {
         statusBar()->showMessage("回滚成功", 2000);

@@ -1,4 +1,4 @@
-#include "session.h"
+﻿#include "session.h"
 #include "../service/CollaborationService.h"
 #include "../model/DocumentRepository.h"
 #include <iostream>
@@ -11,6 +11,7 @@
 static DocumentRepository g_docRepo("happylock.db");
 
 namespace {
+// 获取当前时间字符串，格式：YYYY-MM-DD HH:MM:SS
 std::string now_time() {
     auto now = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(now);
@@ -24,10 +25,12 @@ std::string now_time() {
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
+// 彩色输出辅助
 std::string cyan(const std::string& s) { return "\033[36m" + s + "\033[0m"; }
 std::string magenta(const std::string& s) { return "\033[35m" + s + "\033[0m"; }
 }
 
+// Session构造函数，初始化socket和协同服务指针，首次连接时初始化数据库
 Session::Session(boost::asio::ip::tcp::socket socket, CollaborationService* collabService)
     : socket_(std::move(socket)), collabService_(collabService) {
     static bool inited = false;
@@ -35,6 +38,7 @@ Session::Session(boost::asio::ip::tcp::socket socket, CollaborationService* coll
     std::cout << cyan("[Session]") << " [" << now_time() << "] 连接建立: " << socket_.remote_endpoint() << std::endl;
 }
 
+// 析构函数，处理连接关闭和全局连接数统计
 Session::~Session() {
     try {
         {
@@ -48,10 +52,12 @@ Session::~Session() {
     }
 }
 
+// 启动会话，开始异步读取
 void Session::start() {
     do_read();
 }
 
+// 异步读取客户端消息，处理各种消息类型
 void Session::do_read() {
     auto self(shared_from_this());
     socket_.async_read_some(boost::asio::buffer(buffer_),
@@ -67,6 +73,7 @@ void Session::do_read() {
                             auto j = json::parse(line);
                             std::string type = j.value("type", "");
                             if (type == "edit") {
+                                // 处理文档编辑消息
                                 int recvDocId = j.value("docId", 1);
                                 std::string content = j.value("content", "");
                                 std::string user = j.value("user", "");
@@ -95,6 +102,7 @@ void Session::do_read() {
                                 collabService_->broadcast(docId, resp.dump(), self);
                                 collabService_->broadcastUserList(docId);
                             } else if (type == "switch_doc") {
+                                // 处理文档切换请求
                                 int newDocId = -1;
                                 std::string user = j.value("user", "");
                                 if (j.contains("docTitle")) {
@@ -129,6 +137,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "get_versions") {
+                                // 获取历史版本列表
                                 int reqDocId = j.value("docId", 1);
                                 auto vers = g_docRepo.getVersions(reqDocId);
                                 json arr = json::array();
@@ -146,6 +155,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "rollback") {
+                                // 回滚到指定版本
                                 int reqDocId = j.value("docId", 1);
                                 int versionId = j.value("versionId", 0);
                                 bool ok = g_docRepo.rollbackDocument(reqDocId, versionId);
@@ -170,6 +180,7 @@ void Session::do_read() {
                                     }
                                 }
                             } else if (type == "list_docs") {
+                                // 获取所有文档列表
                                 auto docs = g_docRepo.getAllDocIdTitle();
                                 json arr = json::array();
                                 for (const auto& d : docs) {
@@ -181,6 +192,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "rename_doc") {
+                                // 重命名文档
                                 int docId = j.value("docId", 0);
                                 std::string newTitle = j.value("newTitle", "");
                                 bool ok = g_docRepo.renameDocument(docId, newTitle);
@@ -205,6 +217,7 @@ void Session::do_read() {
         });
 }
 
+// 发送消息到客户端，异步写入
 void Session::do_write(const std::string& msg) {
     auto self(shared_from_this());
     auto data = std::make_shared<std::string>(msg + "\n");

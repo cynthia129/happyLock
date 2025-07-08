@@ -1,17 +1,21 @@
-#include "DocumentRepository.h"
+﻿#include "DocumentRepository.h"
 #include <iostream>
 
+// 构造函数，打开指定路径的数据库文件
 DocumentRepository::DocumentRepository(const std::string& dbPath) : dbPath_(dbPath) {
+    // 使用sqlite3_open打开数据库
     if (sqlite3_open(dbPath.c_str(), &db_) != SQLITE_OK) {
         std::cerr << "Cannot open database: " << sqlite3_errmsg(db_) << std::endl;
         db_ = nullptr;
     }
 }
 
+// 析构函数，关闭数据库连接
 DocumentRepository::~DocumentRepository() {
     if (db_) sqlite3_close(db_);
 }
 
+// 初始化数据库表结构（文档表和版本表）
 bool DocumentRepository::init() {
     const char* docTable = "CREATE TABLE IF NOT EXISTS documents ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -38,6 +42,7 @@ bool DocumentRepository::init() {
     return true;
 }
 
+// 添加新文档到数据库
 bool DocumentRepository::addDocument(const Document& doc) {
     const char* sql = "INSERT INTO documents (title, content, version) VALUES (?, ?, ?);";
     sqlite3_stmt* stmt;
@@ -50,6 +55,7 @@ bool DocumentRepository::addDocument(const Document& doc) {
     return ok;
 }
 
+// 更新已有文档内容
 bool DocumentRepository::updateDocument(const Document& doc) {
     const char* sql = "UPDATE documents SET title=?, content=?, version=? WHERE id=?;";
     sqlite3_stmt* stmt;
@@ -63,6 +69,7 @@ bool DocumentRepository::updateDocument(const Document& doc) {
     return ok;
 }
 
+// 根据ID获取文档信息
 bool DocumentRepository::getDocument(int id, Document& doc) {
     const char* sql = "SELECT id, title, content, version FROM documents WHERE id=?;";
     sqlite3_stmt* stmt;
@@ -82,6 +89,7 @@ bool DocumentRepository::getDocument(int id, Document& doc) {
     return found;
 }
 
+// 获取所有文档列表
 std::vector<Document> DocumentRepository::getAllDocuments() {
     std::vector<Document> docs;
     const char* sql = "SELECT id, title, content, version FROM documents;";
@@ -101,6 +109,7 @@ std::vector<Document> DocumentRepository::getAllDocuments() {
     return docs;
 }
 
+// 添加文档版本信息
 bool DocumentRepository::addVersion(const Version& ver) {
     const char* sql = "INSERT INTO versions (docId, content, author, timestamp) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt;
@@ -114,6 +123,7 @@ bool DocumentRepository::addVersion(const Version& ver) {
     return ok;
 }
 
+// 获取指定文档的所有版本
 std::vector<Version> DocumentRepository::getVersions(int docId) {
     std::vector<Version> vers;
     const char* sql = "SELECT id, docId, content, author, timestamp FROM versions WHERE docId=?;";
@@ -135,8 +145,9 @@ std::vector<Version> DocumentRepository::getVersions(int docId) {
     return vers;
 }
 
+// 回滚文档到指定版本内容
 bool DocumentRepository::rollbackDocument(int docId, int versionId) {
-    // 获取目标版本
+    // 1. 获取目标版本内容
     const char* sql = "SELECT content FROM versions WHERE id=? AND docId=?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
@@ -151,7 +162,7 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     }
     sqlite3_finalize(stmt);
     if (!found) return false;
-    // 更新文档内容
+    // 2. 更新文档内容为目标版本
     const char* usql = "UPDATE documents SET content=? WHERE id=?;";
     if (sqlite3_prepare_v2(db_, usql, -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, content.c_str(), -1, SQLITE_TRANSIENT);
@@ -161,6 +172,7 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     return ok;
 }
 
+// 通过文档标题查找文档ID
 int DocumentRepository::getDocIdByTitle(const std::string& title) {
     const char* sql = "SELECT id FROM documents WHERE title=?;";
     sqlite3_stmt* stmt;
@@ -174,6 +186,7 @@ int DocumentRepository::getDocIdByTitle(const std::string& title) {
     return docId;
 }
 
+// 通过标题新建文档并返回新ID
 int DocumentRepository::createDocumentWithTitle(const std::string& title) {
     const char* sql = "INSERT INTO documents (title, content, version) VALUES (?, '', 1);";
     sqlite3_stmt* stmt;
@@ -188,6 +201,7 @@ int DocumentRepository::createDocumentWithTitle(const std::string& title) {
     return docId;
 }
 
+// 获取所有文档的ID和标题
 std::vector<std::pair<int, std::string>> DocumentRepository::getAllDocIdTitle() {
     std::vector<std::pair<int, std::string>> docs;
     const char* sql = "SELECT id, title FROM documents;";
@@ -203,6 +217,7 @@ std::vector<std::pair<int, std::string>> DocumentRepository::getAllDocIdTitle() 
     return docs;
 }
 
+// 重命名文档
 bool DocumentRepository::renameDocument(int docId, const std::string& newTitle) {
     const char* sql = "UPDATE documents SET title=? WHERE id=?;";
     sqlite3_stmt* stmt;

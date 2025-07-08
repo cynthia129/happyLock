@@ -1,3 +1,5 @@
+# CMakeLists.txt
+# 项目根目录CMake构建脚本，配置全局C++标准和子目录。
 cmake_minimum_required(VERSION 3.10)
 
 project(happyLock LANGUAGES CXX)

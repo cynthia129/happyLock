@@ -1,14 +1,16 @@
-#include "server.h"
+﻿#include "server.h"
 #include <iostream>
 #include <chrono>
 #include <iomanip>
 #include <mutex>
 #include <sstream>
 
+// 全局连接数互斥锁和计数器定义
 std::mutex g_conn_mutex;
 int g_conn_count = 0;
 
 namespace {
+// 获取当前时间字符串，格式：YYYY-MM-DD HH:MM:SS
 std::string now_time() {
     auto now = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(now);
@@ -22,18 +24,20 @@ std::string now_time() {
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
-// 彩色输出辅助
+// 彩色输出辅助函数
 std::string green(const std::string& s) { return "\033[32m" + s + "\033[0m"; }
 std::string yellow(const std::string& s) { return "\033[33m" + s + "\033[0m"; }
 std::string red(const std::string& s) { return "\033[31m" + s + "\033[0m"; }
 }
 
+// Server构造函数，初始化监听端口并启动异步接受
 Server::Server(boost::asio::io_context& io_context, short port)
     : acceptor_(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
     std::cout << green("[Server]") << " [" << now_time() << "] 启动，监听端口: " << port << std::endl;
     do_accept();
 }
 
+// 异步接受新连接，创建Session并加入协同服务
 void Server::do_accept() {
     acceptor_.async_accept(
         [this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {

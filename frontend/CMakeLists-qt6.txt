@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
+# frontend/CMakeLists-qt6.txt
+# Qt6前端构建脚本（简化版），用于兼容不同环境。
 
 project(frontend LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)      # 自动处理MOC
+set(CMAKE_AUTORCC ON)      # 自动处理Qt资源
+set(CMAKE_AUTOUIC ON)      # 自动处理UI
 
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED) # 查找Qt6 Widgets模块
 
 add_executable(frontend
     main.cpp
@@ -14,4 +16,4 @@ add_executable(frontend
     MainWindow.h
 )
 
-target_link_libraries(frontend Qt6::Widgets) 
+target_link_libraries(frontend Qt6::Widgets) # 链接Qt6 Widgets库 
