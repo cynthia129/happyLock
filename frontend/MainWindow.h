@@ -50,8 +50,11 @@ private:
     QListWidget* userListWidget;  // 在线用户列表控件
 
     // UI初始化相关方法
+    //设置菜单栏
     void setupMenu();
+    //设置主布局
     void setupLayout();
+    //设置状态栏
     void setupStatusBar();
 
 private slots:

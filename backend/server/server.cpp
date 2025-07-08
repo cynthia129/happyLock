@@ -25,9 +25,9 @@ std::string now_time() {
     return oss.str();
 }
 // 彩色输出辅助函数
-std::string green(const std::string& s) { return "\033[32m" + s + "\033[0m"; }
-std::string yellow(const std::string& s) { return "\033[33m" + s + "\033[0m"; }
-std::string red(const std::string& s) { return "\033[31m" + s + "\033[0m"; }
+std::string green(const std::string& s) { return s; }
+std::string yellow(const std::string& s) { return s; }
+std::string red(const std::string& s) { return s; }
 }
 
 // Server构造函数，初始化监听端口并启动异步接受

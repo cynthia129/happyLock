@@ -26,8 +26,8 @@ std::string now_time() {
     return oss.str();
 }
 // 彩色输出辅助
-std::string cyan(const std::string& s) { return "\033[36m" + s + "\033[0m"; }
-std::string magenta(const std::string& s) { return "\033[35m" + s + "\033[0m"; }
+std::string cyan(const std::string& s) { return s; }
+std::string magenta(const std::string& s) { return s; }
 }
 
 // Session构造函数，初始化socket和协同服务指针，首次连接时初始化数据库

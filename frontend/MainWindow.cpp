@@ -187,6 +187,7 @@ void MainWindow::setupMenu() {
     newAction = fileMenu->addAction("新建");
     openAction = fileMenu->addAction("打开");
     saveAction = fileMenu->addAction("保存");
+    //添加分割线
     fileMenu->addSeparator();
     connectAction = fileMenu->addAction("连接服务器");
     switchDocAction = fileMenu->addAction("切换文档");
