@@ -1,4 +1,4 @@
-ï»¿#include "session.h"
+#include "session.h"
 #include <iostream>
 
 Session::Session(boost::asio::ip::tcp::socket socket)
@@ -23,14 +23,14 @@ void Session::do_read() {
                         int version = j.value("version", 0);
                         std::cout << "Edit from " << user << ": " << content << " (v" << version << ")" << std::endl;
 
-                        // æž„é€ å›žæ‰§æ¶ˆæ¯
+                        // ¹¹Ôì»ØÖ´ÏûÏ¢
                         json resp;
                         resp["type"] = "ack";
                         resp["status"] = "ok";
                         resp["version"] = version;
                         do_write(resp.dump());
                     } else {
-                        // å…¶ä»–ç±»åž‹å¤„ç†
+                        // ÆäËûÀàÐÍ´¦Àí
                     }
                 } catch (std::exception& e) {
                     std::cerr << "JSON parse error: " << e.what() << std::endl;
@@ -44,6 +44,6 @@ void Session::do_write(const std::string& msg) {
     auto self(shared_from_this());
     boost::asio::async_write(socket_, boost::asio::buffer(msg),
         [this, self](boost::system::error_code ec, std::size_t /*length*/) {
-            // å¯é€‰ï¼šå¤„ç†å†™å®Œæˆ
+            // ¿ÉÑ¡£º´¦ÀíÐ´Íê³É
         });
 } 

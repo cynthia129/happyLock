@@ -1,48 +1,48 @@
-ï»¿#pragma once
+#pragma once
 #include "Document.h"
 #include "Version.h"
 #include <vector>
 #include <string>
 #include <sqlite3.h>
 
-// DocumentRepositoryç±»ç”¨äºç®¡ç†æ–‡æ¡£å’Œç‰ˆæœ¬çš„æŒä¹…åŒ–ï¼Œå°è£…äº†æ‰€æœ‰ä¸SQLiteæ•°æ®åº“çš„äº¤äº’ã€‚
+// DocumentRepositoryÀàÓÃÓÚ¹ÜÀíÎÄµµºÍ°æ±¾µÄ³Ö¾Ã»¯£¬·â×°ÁËËùÓĞÓëSQLiteÊı¾İ¿âµÄ½»»¥¡£
 class DocumentRepository {
 public:
-    // æ„é€ å‡½æ•°ï¼Œä¼ å…¥æ•°æ®åº“æ–‡ä»¶è·¯å¾„
+    // ¹¹Ôìº¯Êı£¬´«ÈëÊı¾İ¿âÎÄ¼şÂ·¾¶
     DocumentRepository(const std::string& dbPath);
-    // ææ„å‡½æ•°ï¼Œå…³é—­æ•°æ®åº“è¿æ¥
+    // Îö¹¹º¯Êı£¬¹Ø±ÕÊı¾İ¿âÁ¬½Ó
     ~DocumentRepository();
 
-    // åˆå§‹åŒ–æ•°æ®åº“è¡¨ç»“æ„
+    // ³õÊ¼»¯Êı¾İ¿â±í½á¹¹
     bool init();
-    // æ·»åŠ æ–°æ–‡æ¡£
+    // Ìí¼ÓĞÂÎÄµµ
     bool addDocument(const Document& doc);
-    // æ›´æ–°å·²æœ‰æ–‡æ¡£
+    // ¸üĞÂÒÑÓĞÎÄµµ
     bool updateDocument(const Document& doc);
-    // æ ¹æ®IDè·å–æ–‡æ¡£
+    // ¸ù¾İID»ñÈ¡ÎÄµµ
     bool getDocument(int id, Document& doc);
-    // è·å–æ‰€æœ‰æ–‡æ¡£
+    // »ñÈ¡ËùÓĞÎÄµµ
     std::vector<Document> getAllDocuments();
 
-    // æ·»åŠ æ–‡æ¡£ç‰ˆæœ¬
+    // Ìí¼ÓÎÄµµ°æ±¾
     bool addVersion(const Version& ver);
-    // è·å–æŒ‡å®šæ–‡æ¡£çš„æ‰€æœ‰ç‰ˆæœ¬
+    // »ñÈ¡Ö¸¶¨ÎÄµµµÄËùÓĞ°æ±¾
     std::vector<Version> getVersions(int docId);
 
-    // å›æ»šæ–‡æ¡£åˆ°æŒ‡å®šç‰ˆæœ¬
+    // »Ø¹öÎÄµµµ½Ö¸¶¨°æ±¾
     bool rollbackDocument(int docId, int versionId);
 
-    // é€šè¿‡æ–‡æ¡£åæŸ¥æ‰¾æ–‡æ¡£ID
+    // Í¨¹ıÎÄµµÃû²éÕÒÎÄµµID
     int getDocIdByTitle(const std::string& title);
-    // é€šè¿‡æ–‡æ¡£åæ–°å»ºæ–‡æ¡£å¹¶è¿”å›ID
+    // Í¨¹ıÎÄµµÃûĞÂ½¨ÎÄµµ²¢·µ»ØID
     int createDocumentWithTitle(const std::string& title);
 
-    // è·å–æ‰€æœ‰æ–‡æ¡£çš„IDå’Œæ ‡é¢˜
+    // »ñÈ¡ËùÓĞÎÄµµµÄIDºÍ±êÌâ
     std::vector<std::pair<int, std::string>> getAllDocIdTitle();
-    // é‡å‘½åæ–‡æ¡£
+    // ÖØÃüÃûÎÄµµ
     bool renameDocument(int docId, const std::string& newTitle);
 
 private:
-    sqlite3* db_ = nullptr;      // SQLiteæ•°æ®åº“è¿æ¥æŒ‡é’ˆ
-    std::string dbPath_;        // æ•°æ®åº“æ–‡ä»¶è·¯å¾„
+    sqlite3* db_ = nullptr;      // SQLiteÊı¾İ¿âÁ¬½ÓÖ¸Õë
+    std::string dbPath_;        // Êı¾İ¿âÎÄ¼şÂ·¾¶
 }; 

@@ -1,16 +1,16 @@
-ï»¿#pragma once
+#pragma once
 #include <string>
 
-// Documentç±»è¡¨ç¤ºä¸€ä¸ªæ–‡æ¡£å¯¹è±¡ï¼ŒåŒ…å«æ–‡æ¡£çš„IDã€æ ‡é¢˜ã€å†…å®¹å’Œç‰ˆæœ¬å·ã€‚
+// DocumentÀà±íÊ¾Ò»¸öÎÄµµ¶ÔÏó£¬°üº¬ÎÄµµµÄID¡¢±êÌâ¡¢ÄÚÈİºÍ°æ±¾ºÅ¡£
 class Document {
 public:
-    int id;                // æ–‡æ¡£å”¯ä¸€æ ‡è¯†ç¬¦
-    std::string title;     // æ–‡æ¡£æ ‡é¢˜
-    std::string content;   // æ–‡æ¡£å†…å®¹
-    int version;           // å½“å‰æ–‡æ¡£ç‰ˆæœ¬å·
+    int id;                // ÎÄµµÎ¨Ò»±êÊ¶·û
+    std::string title;     // ÎÄµµ±êÌâ
+    std::string content;   // ÎÄµµÄÚÈİ
+    int version;           // µ±Ç°ÎÄµµ°æ±¾ºÅ
 
-    // é»˜è®¤æ„é€ å‡½æ•°ï¼Œåˆ›å»ºç©ºæ–‡æ¡£å¯¹è±¡
+    // Ä¬ÈÏ¹¹Ôìº¯Êı£¬´´½¨¿ÕÎÄµµ¶ÔÏó
     Document() = default;
-    // å¸¦å‚æ•°æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–æ‰€æœ‰æˆå‘˜å˜é‡
+    // ´ø²ÎÊı¹¹Ôìº¯Êı£¬³õÊ¼»¯ËùÓĞ³ÉÔ±±äÁ¿
     Document(int id, const std::string& title, const std::string& content, int version);
 }; 

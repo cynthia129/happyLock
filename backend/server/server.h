@@ -1,23 +1,23 @@
-ï»¿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <memory>
 #include "session.h"
 #include "../service/CollaborationService.h"
 #include <mutex>
 
-// Serverç±»è´Ÿè´£å¯åŠ¨TCPæœåŠ¡å™¨ï¼Œæ¥å—å®¢æˆ·ç«¯è¿æ¥ï¼Œå¹¶ä¸ºæ¯ä¸ªè¿æ¥åˆ›å»ºSessionå¯¹è±¡ã€‚
+// ServerÀà¸ºÔğÆô¶¯TCP·şÎñÆ÷£¬½ÓÊÜ¿Í»§¶ËÁ¬½Ó£¬²¢ÎªÃ¿¸öÁ¬½Ó´´½¨Session¶ÔÏó¡£
 class Server {
 public:
-    // æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–ç›‘å¬ç«¯å£
+    // ¹¹Ôìº¯Êı£¬³õÊ¼»¯¼àÌı¶Ë¿Ú
     Server(boost::asio::io_context& io_context, short port);
 
 private:
-    // å¼‚æ­¥æ¥å—æ–°è¿æ¥
+    // Òì²½½ÓÊÜĞÂÁ¬½Ó
     void do_accept();
-    boost::asio::ip::tcp::acceptor acceptor_; // TCPè¿æ¥æ¥å—å™¨
-    CollaborationService collabService_;      // ååŒæœåŠ¡å¯¹è±¡ï¼Œç®¡ç†æ‰€æœ‰Session
+    boost::asio::ip::tcp::acceptor acceptor_; // TCPÁ¬½Ó½ÓÊÜÆ÷
+    CollaborationService collabService_;      // Ğ­Í¬·şÎñ¶ÔÏó£¬¹ÜÀíËùÓĞSession
 };
 
-// å…¨å±€è¿æ¥æ•°äº’æ–¥é”å’Œè®¡æ•°å™¨
-extern std::mutex g_conn_mutex; // ä¿æŠ¤g_conn_countçš„äº’æ–¥é”
-extern int g_conn_count;        // å½“å‰æ´»è·ƒè¿æ¥æ•° 
+// È«¾ÖÁ¬½ÓÊı»¥³âËøºÍ¼ÆÊıÆ÷
+extern std::mutex g_conn_mutex; // ±£»¤g_conn_countµÄ»¥³âËø
+extern int g_conn_count;        // µ±Ç°»îÔ¾Á¬½ÓÊı 

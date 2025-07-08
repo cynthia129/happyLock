@@ -1,21 +1,21 @@
-ï»¿#include "DocumentRepository.h"
+#include "DocumentRepository.h"
 #include <iostream>
 
-// æ„é€ å‡½æ•°ï¼Œæ‰“å¼€æŒ‡å®šè·¯å¾„çš„æ•°æ®åº“æ–‡ä»¶
+// ¹¹Ôìº¯Êı£¬´ò¿ªÖ¸¶¨Â·¾¶µÄÊı¾İ¿âÎÄ¼ş
 DocumentRepository::DocumentRepository(const std::string& dbPath) : dbPath_(dbPath) {
-    // ä½¿ç”¨sqlite3_openæ‰“å¼€æ•°æ®åº“
+    // Ê¹ÓÃsqlite3_open´ò¿ªÊı¾İ¿â
     if (sqlite3_open(dbPath.c_str(), &db_) != SQLITE_OK) {
         std::cerr << "Cannot open database: " << sqlite3_errmsg(db_) << std::endl;
         db_ = nullptr;
     }
 }
 
-// ææ„å‡½æ•°ï¼Œå…³é—­æ•°æ®åº“è¿æ¥
+// Îö¹¹º¯Êı£¬¹Ø±ÕÊı¾İ¿âÁ¬½Ó
 DocumentRepository::~DocumentRepository() {
     if (db_) sqlite3_close(db_);
 }
 
-// åˆå§‹åŒ–æ•°æ®åº“è¡¨ç»“æ„ï¼ˆæ–‡æ¡£è¡¨å’Œç‰ˆæœ¬è¡¨ï¼‰
+// ³õÊ¼»¯Êı¾İ¿â±í½á¹¹£¨ÎÄµµ±íºÍ°æ±¾±í£©
 bool DocumentRepository::init() {
     const char* docTable = "CREATE TABLE IF NOT EXISTS documents ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -42,7 +42,7 @@ bool DocumentRepository::init() {
     return true;
 }
 
-// æ·»åŠ æ–°æ–‡æ¡£åˆ°æ•°æ®åº“
+// Ìí¼ÓĞÂÎÄµµµ½Êı¾İ¿â
 bool DocumentRepository::addDocument(const Document& doc) {
     const char* sql = "INSERT INTO documents (title, content, version) VALUES (?, ?, ?);";
     sqlite3_stmt* stmt;
@@ -55,7 +55,7 @@ bool DocumentRepository::addDocument(const Document& doc) {
     return ok;
 }
 
-// æ›´æ–°å·²æœ‰æ–‡æ¡£å†…å®¹
+// ¸üĞÂÒÑÓĞÎÄµµÄÚÈİ
 bool DocumentRepository::updateDocument(const Document& doc) {
     const char* sql = "UPDATE documents SET title=?, content=?, version=? WHERE id=?;";
     sqlite3_stmt* stmt;
@@ -69,7 +69,7 @@ bool DocumentRepository::updateDocument(const Document& doc) {
     return ok;
 }
 
-// æ ¹æ®IDè·å–æ–‡æ¡£ä¿¡æ¯
+// ¸ù¾İID»ñÈ¡ÎÄµµĞÅÏ¢
 bool DocumentRepository::getDocument(int id, Document& doc) {
     const char* sql = "SELECT id, title, content, version FROM documents WHERE id=?;";
     sqlite3_stmt* stmt;
@@ -89,7 +89,7 @@ bool DocumentRepository::getDocument(int id, Document& doc) {
     return found;
 }
 
-// è·å–æ‰€æœ‰æ–‡æ¡£åˆ—è¡¨
+// »ñÈ¡ËùÓĞÎÄµµÁĞ±í
 std::vector<Document> DocumentRepository::getAllDocuments() {
     std::vector<Document> docs;
     const char* sql = "SELECT id, title, content, version FROM documents;";
@@ -109,7 +109,7 @@ std::vector<Document> DocumentRepository::getAllDocuments() {
     return docs;
 }
 
-// æ·»åŠ æ–‡æ¡£ç‰ˆæœ¬ä¿¡æ¯
+// Ìí¼ÓÎÄµµ°æ±¾ĞÅÏ¢
 bool DocumentRepository::addVersion(const Version& ver) {
     const char* sql = "INSERT INTO versions (docId, content, author, timestamp) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt;
@@ -123,7 +123,7 @@ bool DocumentRepository::addVersion(const Version& ver) {
     return ok;
 }
 
-// è·å–æŒ‡å®šæ–‡æ¡£çš„æ‰€æœ‰ç‰ˆæœ¬
+// »ñÈ¡Ö¸¶¨ÎÄµµµÄËùÓĞ°æ±¾
 std::vector<Version> DocumentRepository::getVersions(int docId) {
     std::vector<Version> vers;
     const char* sql = "SELECT id, docId, content, author, timestamp FROM versions WHERE docId=?;";
@@ -145,9 +145,9 @@ std::vector<Version> DocumentRepository::getVersions(int docId) {
     return vers;
 }
 
-// å›æ»šæ–‡æ¡£åˆ°æŒ‡å®šç‰ˆæœ¬å†…å®¹
+// »Ø¹öÎÄµµµ½Ö¸¶¨°æ±¾ÄÚÈİ
 bool DocumentRepository::rollbackDocument(int docId, int versionId) {
-    // 1. è·å–ç›®æ ‡ç‰ˆæœ¬å†…å®¹
+    // 1. »ñÈ¡Ä¿±ê°æ±¾ÄÚÈİ
     const char* sql = "SELECT content FROM versions WHERE id=? AND docId=?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) return false;
@@ -162,7 +162,7 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     }
     sqlite3_finalize(stmt);
     if (!found) return false;
-    // 2. æ›´æ–°æ–‡æ¡£å†…å®¹ä¸ºç›®æ ‡ç‰ˆæœ¬
+    // 2. ¸üĞÂÎÄµµÄÚÈİÎªÄ¿±ê°æ±¾
     const char* usql = "UPDATE documents SET content=? WHERE id=?;";
     if (sqlite3_prepare_v2(db_, usql, -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, content.c_str(), -1, SQLITE_TRANSIENT);
@@ -172,7 +172,7 @@ bool DocumentRepository::rollbackDocument(int docId, int versionId) {
     return ok;
 }
 
-// é€šè¿‡æ–‡æ¡£æ ‡é¢˜æŸ¥æ‰¾æ–‡æ¡£ID
+// Í¨¹ıÎÄµµ±êÌâ²éÕÒÎÄµµID
 int DocumentRepository::getDocIdByTitle(const std::string& title) {
     const char* sql = "SELECT id FROM documents WHERE title=?;";
     sqlite3_stmt* stmt;
@@ -186,7 +186,7 @@ int DocumentRepository::getDocIdByTitle(const std::string& title) {
     return docId;
 }
 
-// é€šè¿‡æ ‡é¢˜æ–°å»ºæ–‡æ¡£å¹¶è¿”å›æ–°ID
+// Í¨¹ı±êÌâĞÂ½¨ÎÄµµ²¢·µ»ØĞÂID
 int DocumentRepository::createDocumentWithTitle(const std::string& title) {
     const char* sql = "INSERT INTO documents (title, content, version) VALUES (?, '', 1);";
     sqlite3_stmt* stmt;
@@ -201,7 +201,7 @@ int DocumentRepository::createDocumentWithTitle(const std::string& title) {
     return docId;
 }
 
-// è·å–æ‰€æœ‰æ–‡æ¡£çš„IDå’Œæ ‡é¢˜
+// »ñÈ¡ËùÓĞÎÄµµµÄIDºÍ±êÌâ
 std::vector<std::pair<int, std::string>> DocumentRepository::getAllDocIdTitle() {
     std::vector<std::pair<int, std::string>> docs;
     const char* sql = "SELECT id, title FROM documents;";
@@ -217,7 +217,7 @@ std::vector<std::pair<int, std::string>> DocumentRepository::getAllDocIdTitle() 
     return docs;
 }
 
-// é‡å‘½åæ–‡æ¡£
+// ÖØÃüÃûÎÄµµ
 bool DocumentRepository::renameDocument(int docId, const std::string& newTitle) {
     const char* sql = "UPDATE documents SET title=? WHERE id=?;";
     sqlite3_stmt* stmt;

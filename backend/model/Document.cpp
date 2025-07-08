@@ -1,5 +1,5 @@
-ï»¿#include "Document.h"
+#include "Document.h"
 
-// å¸¦å‚æ•°æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–æ–‡æ¡£çš„IDã€æ ‡é¢˜ã€å†…å®¹å’Œç‰ˆæœ¬å·
+// ´ø²ÎÊı¹¹Ôìº¯Êı£¬³õÊ¼»¯ÎÄµµµÄID¡¢±êÌâ¡¢ÄÚÈİºÍ°æ±¾ºÅ
 Document::Document(int id, const std::string& title, const std::string& content, int version)
     : id(id), title(title), content(content), version(version) {} 

@@ -1,16 +1,16 @@
-ï»¿#include "server.h"
+#include "server.h"
 #include <iostream>
 #include <chrono>
 #include <iomanip>
 #include <mutex>
 #include <sstream>
 
-// å…¨å±€è¿æ¥æ•°äº’æ–¥é”å’Œè®¡æ•°å™¨å®šä¹‰
+// È«¾ÖÁ¬½ÓÊı»¥³âËøºÍ¼ÆÊıÆ÷¶¨Òå
 std::mutex g_conn_mutex;
 int g_conn_count = 0;
 
 namespace {
-// è·å–å½“å‰æ—¶é—´å­—ç¬¦ä¸²ï¼Œæ ¼å¼ï¼šYYYY-MM-DD HH:MM:SS
+// »ñÈ¡µ±Ç°Ê±¼ä×Ö·û´®£¬¸ñÊ½£ºYYYY-MM-DD HH:MM:SS
 std::string now_time() {
     auto now = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(now);
@@ -24,20 +24,20 @@ std::string now_time() {
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
-// å½©è‰²è¾“å‡ºè¾…åŠ©å‡½æ•°
+// ²ÊÉ«Êä³ö¸¨Öúº¯Êı
 std::string green(const std::string& s) { return s; }
 std::string yellow(const std::string& s) { return s; }
 std::string red(const std::string& s) { return s; }
 }
 
-// Serveræ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–ç›‘å¬ç«¯å£å¹¶å¯åŠ¨å¼‚æ­¥æ¥å—
+// Server¹¹Ôìº¯Êı£¬³õÊ¼»¯¼àÌı¶Ë¿Ú²¢Æô¶¯Òì²½½ÓÊÜ
 Server::Server(boost::asio::io_context& io_context, short port)
     : acceptor_(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
-    std::cout << green("[Server]") << " [" << now_time() << "] å¯åŠ¨ï¼Œç›‘å¬ç«¯å£: " << port << std::endl;
+    std::cout << green("[Server]") << " [" << now_time() << "] Æô¶¯£¬¼àÌı¶Ë¿Ú: " << port << std::endl;
     do_accept();
 }
 
-// å¼‚æ­¥æ¥å—æ–°è¿æ¥ï¼Œåˆ›å»ºSessionå¹¶åŠ å…¥ååŒæœåŠ¡
+// Òì²½½ÓÊÜĞÂÁ¬½Ó£¬´´½¨Session²¢¼ÓÈëĞ­Í¬·şÎñ
 void Server::do_accept() {
     acceptor_.async_accept(
         [this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {
@@ -46,13 +46,13 @@ void Server::do_accept() {
                     std::lock_guard<std::mutex> lock(g_conn_mutex);
                     ++g_conn_count;
                 }
-                std::cout << yellow("[Server]") << " [" << now_time() << "] æ–°å®¢æˆ·ç«¯è¿æ¥: " << socket.remote_endpoint()
-                          << " | å½“å‰è¿æ¥æ•°: " << g_conn_count << std::endl;
+                std::cout << yellow("[Server]") << " [" << now_time() << "] ĞÂ¿Í»§¶ËÁ¬½Ó: " << socket.remote_endpoint()
+                          << " | µ±Ç°Á¬½ÓÊı: " << g_conn_count << std::endl;
                 auto session = std::make_shared<Session>(std::move(socket), &collabService_);
-                collabService_.addSession(1, session); // é»˜è®¤åŠ å…¥æ–‡æ¡£1
+                collabService_.addSession(1, session); // Ä¬ÈÏ¼ÓÈëÎÄµµ1
                 session->start();
             } else {
-                std::cerr << red("[Server]") << " [" << now_time() << "] æ¥å—è¿æ¥å‡ºé”™: " << ec.message() << std::endl;
+                std::cerr << red("[Server]") << " [" << now_time() << "] ½ÓÊÜÁ¬½Ó³ö´í: " << ec.message() << std::endl;
             }
             do_accept();
         }

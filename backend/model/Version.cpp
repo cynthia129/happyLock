@@ -1,6 +1,6 @@
-ï»¿#include "Version.h"
+#include "Version.h"
 
-// å¸¦å‚æ•°æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–ç‰ˆæœ¬çš„IDã€æ‰€å±æ–‡æ¡£IDã€å†…å®¹ã€ä½œè€…å’Œæ—¶é—´æˆ³
+// ´ø²ÎÊı¹¹Ôìº¯Êı£¬³õÊ¼»¯°æ±¾µÄID¡¢ËùÊôÎÄµµID¡¢ÄÚÈİ¡¢×÷ÕßºÍÊ±¼ä´Á
 Version::Version(int id, int docId, const std::string& content, const std::string& author, std::time_t timestamp)
     : id(id), docId(docId), content(content), author(author), timestamp(timestamp)
     {

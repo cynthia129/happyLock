@@ -1,4 +1,4 @@
-ï»¿#include "session.h"
+#include "session.h"
 #include "../service/CollaborationService.h"
 #include "../model/DocumentRepository.h"
 #include <iostream>
@@ -7,11 +7,11 @@
 #include <mutex>
 #include "server.h"
 
-// å…¨å±€æ–‡æ¡£ä»“åº“ï¼ˆå®é™…é¡¹ç›®å¯ç”¨å•ä¾‹æˆ–ä¾èµ–æ³¨å…¥ï¼‰
+// È«¾ÖÎÄµµ²Ö¿â£¨Êµ¼ÊÏîÄ¿¿ÉÓÃµ¥Àı»òÒÀÀµ×¢Èë£©
 static DocumentRepository g_docRepo("happylock.db");
 
 namespace {
-// è·å–å½“å‰æ—¶é—´å­—ç¬¦ä¸²ï¼Œæ ¼å¼ï¼šYYYY-MM-DD HH:MM:SS
+// »ñÈ¡µ±Ç°Ê±¼ä×Ö·û´®£¬¸ñÊ½£ºYYYY-MM-DD HH:MM:SS
 std::string now_time() {
     auto now = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(now);
@@ -25,39 +25,39 @@ std::string now_time() {
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
-// å½©è‰²è¾“å‡ºè¾…åŠ©
+// ²ÊÉ«Êä³ö¸¨Öú
 std::string cyan(const std::string& s) { return s; }
 std::string magenta(const std::string& s) { return s; }
 }
 
-// Sessionæ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–socketå’ŒååŒæœåŠ¡æŒ‡é’ˆï¼Œé¦–æ¬¡è¿æ¥æ—¶åˆå§‹åŒ–æ•°æ®åº“
+// Session¹¹Ôìº¯Êı£¬³õÊ¼»¯socketºÍĞ­Í¬·şÎñÖ¸Õë£¬Ê×´ÎÁ¬½ÓÊ±³õÊ¼»¯Êı¾İ¿â
 Session::Session(boost::asio::ip::tcp::socket socket, CollaborationService* collabService)
     : socket_(std::move(socket)), collabService_(collabService) {
     static bool inited = false;
     if (!inited) { g_docRepo.init(); inited = true; }
-    std::cout << cyan("[Session]") << " [" << now_time() << "] è¿æ¥å»ºç«‹: " << socket_.remote_endpoint() << std::endl;
+    std::cout << cyan("[Session]") << " [" << now_time() << "] Á¬½Ó½¨Á¢: " << socket_.remote_endpoint() << std::endl;
 }
 
-// ææ„å‡½æ•°ï¼Œå¤„ç†è¿æ¥å…³é—­å’Œå…¨å±€è¿æ¥æ•°ç»Ÿè®¡
+// Îö¹¹º¯Êı£¬´¦ÀíÁ¬½Ó¹Ø±ÕºÍÈ«¾ÖÁ¬½ÓÊıÍ³¼Æ
 Session::~Session() {
     try {
         {
             std::lock_guard<std::mutex> lock(g_conn_mutex);
             --g_conn_count;
         }
-        std::cout << magenta("[Session]") << " [" << now_time() << "] è¿æ¥å…³é—­: " << socket_.remote_endpoint()
-                  << " | å½“å‰è¿æ¥æ•°: " << g_conn_count << std::endl;
+        std::cout << magenta("[Session]") << " [" << now_time() << "] Á¬½Ó¹Ø±Õ: " << socket_.remote_endpoint()
+                  << " | µ±Ç°Á¬½ÓÊı: " << g_conn_count << std::endl;
     } catch (...) {
-        std::cout << magenta("[Session]") << " [" << now_time() << "] è¿æ¥å…³é—­: (æœªçŸ¥ç«¯ç‚¹)" << std::endl;
+        std::cout << magenta("[Session]") << " [" << now_time() << "] Á¬½Ó¹Ø±Õ: (Î´Öª¶Ëµã)" << std::endl;
     }
 }
 
-// å¯åŠ¨ä¼šè¯ï¼Œå¼€å§‹å¼‚æ­¥è¯»å–
+// Æô¶¯»á»°£¬¿ªÊ¼Òì²½¶ÁÈ¡
 void Session::start() {
     do_read();
 }
 
-// å¼‚æ­¥è¯»å–å®¢æˆ·ç«¯æ¶ˆæ¯ï¼Œå¤„ç†å„ç§æ¶ˆæ¯ç±»å‹
+// Òì²½¶ÁÈ¡¿Í»§¶ËÏûÏ¢£¬´¦Àí¸÷ÖÖÏûÏ¢ÀàĞÍ
 void Session::do_read() {
     auto self(shared_from_this());
     socket_.async_read_some(boost::asio::buffer(buffer_),
@@ -73,26 +73,26 @@ void Session::do_read() {
                             auto j = json::parse(line);
                             std::string type = j.value("type", "");
                             if (type == "edit") {
-                                // å¤„ç†æ–‡æ¡£ç¼–è¾‘æ¶ˆæ¯
+                                // ´¦ÀíÎÄµµ±à¼­ÏûÏ¢
                                 int recvDocId = j.value("docId", 1);
                                 std::string content = j.value("content", "");
                                 std::string user = j.value("user", "");
                                 docId = recvDocId;
                                 username = user;
-                                // ä¿å­˜å†…å®¹åˆ°æ•°æ®åº“
+                                // ±£´æÄÚÈİµ½Êı¾İ¿â
                                 Document doc;
                                 if (!g_docRepo.getDocument(docId, doc)) {
-                                    doc = Document(docId, std::string("æ–‡æ¡£") + std::to_string(docId), content, 1);
+                                    doc = Document(docId, std::string("ÎÄµµ") + std::to_string(docId), content, 1);
                                     g_docRepo.addDocument(doc);
                                 } else {
                                     doc.content = content;
                                     doc.version++;
                                     g_docRepo.updateDocument(doc);
                                 }
-                                // ä¿å­˜ç‰ˆæœ¬å¿«ç…§
+                                // ±£´æ°æ±¾¿ìÕÕ
                                 Version ver(0, docId, content, username, std::time(nullptr));
                                 g_docRepo.addVersion(ver);
-                                // å¹¿æ’­ç»™åŒæ–‡æ¡£å…¶ä»–Session
+                                // ¹ã²¥¸øÍ¬ÎÄµµÆäËûSession
                                 json resp = {
                                     {"type", "edit"},
                                     {"docId", docId},
@@ -102,7 +102,7 @@ void Session::do_read() {
                                 collabService_->broadcast(docId, resp.dump(), self);
                                 collabService_->broadcastUserList(docId);
                             } else if (type == "switch_doc") {
-                                // å¤„ç†æ–‡æ¡£åˆ‡æ¢è¯·æ±‚
+                                // ´¦ÀíÎÄµµÇĞ»»ÇëÇó
                                 int newDocId = -1;
                                 std::string user = j.value("user", "");
                                 if (j.contains("docTitle")) {
@@ -114,14 +114,14 @@ void Session::do_read() {
                                 } else {
                                     newDocId = j.value("docId", 1);
                                 }
-                                // é€€å‡ºæ—§æ–‡æ¡£
+                                // ÍË³ö¾ÉÎÄµµ
                                 collabService_->removeSession(docId, self);
                                 collabService_->broadcastUserList(docId);
                                 docId = newDocId;
                                 username = user;
                                 collabService_->addSession(docId, self);
                                 collabService_->broadcastUserList(docId);
-                                // è¿”å›å½“å‰æ–‡æ¡£å†…å®¹
+                                // ·µ»Øµ±Ç°ÎÄµµÄÚÈİ
                                 Document doc;
                                 std::string content;
                                 if (g_docRepo.getDocument(docId, doc)) {
@@ -137,7 +137,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "get_versions") {
-                                // è·å–å†å²ç‰ˆæœ¬åˆ—è¡¨
+                                // »ñÈ¡ÀúÊ·°æ±¾ÁĞ±í
                                 int reqDocId = j.value("docId", 1);
                                 auto vers = g_docRepo.getVersions(reqDocId);
                                 json arr = json::array();
@@ -155,7 +155,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "rollback") {
-                                // å›æ»šåˆ°æŒ‡å®šç‰ˆæœ¬
+                                // »Ø¹öµ½Ö¸¶¨°æ±¾
                                 int reqDocId = j.value("docId", 1);
                                 int versionId = j.value("versionId", 0);
                                 bool ok = g_docRepo.rollbackDocument(reqDocId, versionId);
@@ -166,7 +166,7 @@ void Session::do_read() {
                                     {"ok", ok}
                                 };
                                 do_write(resp.dump());
-                                // å›æ»šæˆåŠŸåå¹¿æ’­æ–°å†…å®¹
+                                // »Ø¹ö³É¹¦ºó¹ã²¥ĞÂÄÚÈİ
                                 if (ok) {
                                     Document doc;
                                     if (g_docRepo.getDocument(reqDocId, doc)) {
@@ -180,7 +180,7 @@ void Session::do_read() {
                                     }
                                 }
                             } else if (type == "list_docs") {
-                                // è·å–æ‰€æœ‰æ–‡æ¡£åˆ—è¡¨
+                                // »ñÈ¡ËùÓĞÎÄµµÁĞ±í
                                 auto docs = g_docRepo.getAllDocIdTitle();
                                 json arr = json::array();
                                 for (const auto& d : docs) {
@@ -192,7 +192,7 @@ void Session::do_read() {
                                 };
                                 do_write(resp.dump());
                             } else if (type == "rename_doc") {
-                                // é‡å‘½åæ–‡æ¡£
+                                // ÖØÃüÃûÎÄµµ
                                 int docId = j.value("docId", 0);
                                 std::string newTitle = j.value("newTitle", "");
                                 bool ok = g_docRepo.renameDocument(docId, newTitle);
@@ -207,22 +207,22 @@ void Session::do_read() {
                         }
                     } catch (std::exception& e) {
                         std::cerr << "JSON parse error: " << e.what() << std::endl;
-                        std::cerr << "åŸå§‹æ•°æ®: [" << line << "]" << std::endl;
+                        std::cerr << "Ô­Ê¼Êı¾İ: [" << line << "]" << std::endl;
                     }
                 }
                 do_read();
             } else {
-                std::cerr << "[Session] è¿æ¥å¼‚å¸¸æ–­å¼€: " << ec.message() << std::endl;
+                std::cerr << "[Session] Á¬½ÓÒì³£¶Ï¿ª: " << ec.message() << std::endl;
             }
         });
 }
 
-// å‘é€æ¶ˆæ¯åˆ°å®¢æˆ·ç«¯ï¼Œå¼‚æ­¥å†™å…¥
+// ·¢ËÍÏûÏ¢µ½¿Í»§¶Ë£¬Òì²½Ğ´Èë
 void Session::do_write(const std::string& msg) {
     auto self(shared_from_this());
     auto data = std::make_shared<std::string>(msg + "\n");
     boost::asio::async_write(socket_, boost::asio::buffer(*data),
         [this, self, data](boost::system::error_code ec, std::size_t /*length*/) {
-            // å¯é€‰ï¼šå¤„ç†å†™å®Œæˆ
+            // ¿ÉÑ¡£º´¦ÀíĞ´Íê³É
         });
 } 

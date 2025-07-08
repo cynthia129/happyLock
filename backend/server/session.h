@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <memory>
 #include <array>
@@ -6,29 +6,29 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-class CollaborationService; // å‰å‘å£°æ˜
+class CollaborationService; // Ç°ÏòÉùÃ÷
 
-// Sessionç±»è¡¨ç¤ºä¸€ä¸ªå®¢æˆ·ç«¯ä¼šè¯ï¼Œè´Ÿè´£æ”¶å‘æ¶ˆæ¯å’Œä¸ååŒæœåŠ¡äº¤äº’ã€‚
+// SessionÀà±íÊ¾Ò»¸ö¿Í»§¶Ë»á»°£¬¸ºÔğÊÕ·¢ÏûÏ¢ºÍÓëĞ­Í¬·şÎñ½»»¥¡£
 class Session : public std::enable_shared_from_this<Session> {
 public:
-    // æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–socketå’ŒååŒæœåŠ¡æŒ‡é’ˆ
+    // ¹¹Ôìº¯Êı£¬³õÊ¼»¯socketºÍĞ­Í¬·şÎñÖ¸Õë
     Session(boost::asio::ip::tcp::socket socket, CollaborationService* collabService);
-    // ææ„å‡½æ•°ï¼Œå¤„ç†è¿æ¥å…³é—­
+    // Îö¹¹º¯Êı£¬´¦ÀíÁ¬½Ó¹Ø±Õ
     ~Session();
-    // å¯åŠ¨ä¼šè¯ï¼Œå¼€å§‹å¼‚æ­¥è¯»å–
+    // Æô¶¯»á»°£¬¿ªÊ¼Òì²½¶ÁÈ¡
     void start();
-    // å‘é€æ¶ˆæ¯åˆ°å®¢æˆ·ç«¯
-    void do_write(const std::string& msg); // å…¬å…±æ¥å£
+    // ·¢ËÍÏûÏ¢µ½¿Í»§¶Ë
+    void do_write(const std::string& msg); // ¹«¹²½Ó¿Ú
 
-    int docId = 1;            // å½“å‰ä¼šè¯æ‰€å±æ–‡æ¡£ID
-    std::string username;     // å½“å‰ä¼šè¯ç”¨æˆ·å
+    int docId = 1;            // µ±Ç°»á»°ËùÊôÎÄµµID
+    std::string username;     // µ±Ç°»á»°ÓÃ»§Ãû
 
 private:
-    // å¼‚æ­¥è¯»å–å®¢æˆ·ç«¯æ¶ˆæ¯
+    // Òì²½¶ÁÈ¡¿Í»§¶ËÏûÏ¢
     void do_read();
 
-    boost::asio::ip::tcp::socket socket_;      // TCPè¿æ¥socket
-    std::array<char, 1024> buffer_;            // è¯»ç¼“å†²åŒº
-    CollaborationService* collabService_;      // ååŒæœåŠ¡æŒ‡é’ˆ
-    std::string read_buffer_;                  // æ¶ˆæ¯æ‹¼æ¥ç¼“å†²
+    boost::asio::ip::tcp::socket socket_;      // TCPÁ¬½Ósocket
+    std::array<char, 1024> buffer_;            // ¶Á»º³åÇø
+    CollaborationService* collabService_;      // Ğ­Í¬·şÎñÖ¸Õë
+    std::string read_buffer_;                  // ÏûÏ¢Æ´½Ó»º³å
 }; 

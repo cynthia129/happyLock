@@ -1,18 +1,18 @@
-ï»¿#pragma once
+#pragma once
 #include <string>
 #include <ctime>
 
-// Versionç±»è¡¨ç¤ºæ–‡æ¡£çš„ä¸€ä¸ªå†å²ç‰ˆæœ¬ï¼ŒåŒ…å«ç‰ˆæœ¬IDã€æ‰€å±æ–‡æ¡£IDã€å†…å®¹ã€ä½œè€…å’Œæ—¶é—´æˆ³ã€‚
+// VersionÀà±íÊ¾ÎÄµµµÄÒ»¸öÀúÊ·°æ±¾£¬°üº¬°æ±¾ID¡¢ËùÊôÎÄµµID¡¢ÄÚÈİ¡¢×÷ÕßºÍÊ±¼ä´Á¡£
 class Version {
 public:
-    int id;                // ç‰ˆæœ¬å”¯ä¸€æ ‡è¯†ç¬¦
-    int docId;             // æ‰€å±æ–‡æ¡£çš„ID
-    std::string content;   // è¯¥ç‰ˆæœ¬çš„æ–‡æ¡£å†…å®¹
-    std::string author;    // ç¼–è¾‘è¯¥ç‰ˆæœ¬çš„ä½œè€…
-    std::time_t timestamp; // ç‰ˆæœ¬åˆ›å»ºæ—¶é—´æˆ³
+    int id;                // °æ±¾Î¨Ò»±êÊ¶·û
+    int docId;             // ËùÊôÎÄµµµÄID
+    std::string content;   // ¸Ã°æ±¾µÄÎÄµµÄÚÈİ
+    std::string author;    // ±à¼­¸Ã°æ±¾µÄ×÷Õß
+    std::time_t timestamp; // °æ±¾´´½¨Ê±¼ä´Á
 
-    // é»˜è®¤æ„é€ å‡½æ•°ï¼Œåˆ›å»ºç©ºç‰ˆæœ¬å¯¹è±¡
+    // Ä¬ÈÏ¹¹Ôìº¯Êı£¬´´½¨¿Õ°æ±¾¶ÔÏó
     Version() = default;
-    // å¸¦å‚æ•°æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–æ‰€æœ‰æˆå‘˜å˜é‡
+    // ´ø²ÎÊı¹¹Ôìº¯Êı£¬³õÊ¼»¯ËùÓĞ³ÉÔ±±äÁ¿
     Version(int id, int docId, const std::string& content, const std::string& author, std::time_t timestamp);
 }; 
